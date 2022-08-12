@@ -1,0 +1,27 @@
+@import url(https://api.fontshare.com/css?f[]=satoshi@300,400,500,700&display=swap);
+
+:root {
+  --slidev-slide-container-background: #13132a;
+}
+
+.slidev-layout {
+  background-color: #13132a;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  /* font-family: 'Satoshi'; */
+  font-weight: 500;
+
+  position: relative;
+}
+
+p {
+  color: #fff;
+}
+
+code {
+  font-family: 'Jetbrains Mono', mono;
+}
