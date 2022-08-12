@@ -8,13 +8,14 @@
   },
   "dependencies": {
     "@neodrag/vue": "^0.1.0",
-    "@slidev/cli": "^0.34.3",
+    "@nuxt/kit": "npm:@nuxt/kit-edge@3.0.0-rc.7-27671596.70b024f",
+    "@slidev/cli": "^0.35.4",
     "@slidev/theme-default": "^0.21.2",
-    "@slidev/theme-seriph": "0.21.3",
     "postcss": "^8.4.16"
   },
   "devDependencies": {
     "@iconify-json/fa": "^1.1.2",
-    "@iconify-json/logos": "^1.1.14"
+    "@iconify-json/logos": "^1.1.14",
+    "vite": "^3.0.6"
   }
 }
