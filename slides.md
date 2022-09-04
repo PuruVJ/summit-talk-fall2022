@@ -1,19 +1,12 @@
 ---
-# try also 'default' to start simple
 theme: default
-# random image from a curated Unsplash collection by Anthony
-# like them? see https://unsplash.com/collections/94734566/slidev
 background: https://source.unsplash.com/collection/94734566/1920x1080
-# apply any windi css classes to the current slide
-class: 'text-center'
-# https://sli.dev/custom/highlighters.html
+class: text-center
 highlighter: shiki
-# show line numbers in code blocks
 lineNumbers: false
-# some information about the slides, markdown enabled
-# persist drawings in exports and build
 drawings:
   persist: false
+title: How to migrate react libraries to svelte
 ---
 
 <!--prettier-disable-->
@@ -28,13 +21,11 @@ drawings:
 </div>
 
 <!--
-
-Hi! Hope ur all enjoying Svelte Summit! So, my talk, as u can see is about migrating react libraries to Svelte. What this means: I will show you step by step how I converted an existing React library to Svelte. And made it smaller and faster.
+Hi! Hope ur all enjoying Svelte Summit! So, my talk is about migrating react libraries to Svelte. What this means: I will show you step by step how I converted an existing React library to Svelte. And made it smaller and faster.
 
 So, first question: All the svelte devs?
 2nd question: All who have been react developers in the past, and don't do react anymore
 3rd question: Still do React?
-
 -->
 
 ---
@@ -1355,7 +1346,7 @@ return (
 
 ### Svelte
 
-```svelte {|21-27}
+```svelte {|21-27|30}
 <script lang="ts">
   import range from 'lodash/range';
 
@@ -1413,6 +1404,1848 @@ As you can see, I moved createParticles to svelte side [CLICK]
 
 And particles computed with props is now a reactive variable [CLICK]
 
-Now, we have very little code left on the left side. But here's where we 
+Now, we have very little code on the left side. But here's where our hurdles begin. You can see the `useStyles`. We don't need to check its codebase to check if it uses React specific features or not. It starts with a `use`, so ofc it does.
+
+So, should we go deeper into the rabbit hole of react specific parts? Into the useStyles function? Not yet!
+
+We still should check around for some constants and helpers
 
 -->
+
+---
+layout: center
+lineNumbers: true
+---
+
+```txt
+- src
+  - index.tsx						
+  - styles.ts						
+  - utils.ts						
+```
+
+<!--
+
+Remember we have a file named `utils`? There are high chances we can find more copy-pasteable code in there. So let's check it!
+
+-->
+
+---
+
+## `utils.ts`
+
+<br/>
+
+```ts
+import isEqual from 'lodash/isEqual';
+
+type Rotate3dTransform = [number, number, number];
+
+export const mapRange = (value: number, x1: number, y1: number, x2: number, y2: number) =>
+  ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
+
+export const rotate = (degree: number, amount: number) => {
+  const result = degree + amount;
+  return result > 360 ? result - 360 : result;
+};
+
+export const coinFlip = () => Math.random() > 0.5;
+
+// avoid this for circles, as it will have no visual effect
+const zAxisRotation: Rotate3dTransform = [0, 0, 1];
+
+export const rotationTransforms: Rotate3dTransform[] = [
+  // dual axis rotations (a bit more realistic)
+  [1, 1, 0],
+  [1, 0, 1],
+  [0, 1, 1],
+  // single axis rotations (a bit dumber)
+  [1, 0, 0],
+  [0, 1, 0],
+  zAxisRotation,
+];
+
+export const shouldBeCircle = (rotationIndex: number) => {
+  return !isEqual(rotationTransforms[rotationIndex], zAxisRotation) && coinFlip();
+};
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+.slidev-code {
+  /* border-radius: 0 !important; */
+}
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+Scanning this file, we can see there's no JSX or any other react specific code. So, we can safely copy paste it. The whole thing. For simplicity, we'll put it in our one single .svelte file.
+
+-->
+
+---
+
+```svelte {all|35-41}
+<script context="module" lang="ts">
+  import isEqual from 'lodash/isEqual';
+  import range from 'lodash/range';
+
+  type Rotate3dTransform = [number, number, number];
+
+  export const mapRange = (value: number, x1: number, y1: number, x2: number, y2: number) =>
+    ((value - x1) * (y2 - x2)) / (y1 - x1) + x2;
+
+  export const rotate = (degree: number, amount: number) => {
+    const result = degree + amount;
+    return result > 360 ? result - 360 : result;
+  };
+
+  export const coinFlip = () => Math.random() > 0.5;
+
+  // avoid this for circles, as it will have no visual effect
+  const zAxisRotation: Rotate3dTransform = [0, 0, 1];
+
+  export const rotationTransforms: Rotate3dTransform[] = [
+    // dual axis rotations (a bit more realistic)
+    [1, 1, 0],
+    [1, 0, 1],
+    [0, 1, 1],
+    // single axis rotations (a bit dumber)
+    [1, 0, 0],
+    [0, 1, 0],
+    zAxisRotation,
+  ];
+
+  export const shouldBeCircle = (rotationIndex: number) => {
+    return !isEqual(rotationTransforms[rotationIndex], zAxisRotation) && coinFlip();
+  };
+
+  const createParticles = (count: number, colors: string[]) => {
+    const increment = 360 / count;
+    return range(count).map(index => ({
+      color: colors[index % colors.length],
+      degree: increment * index
+    }));
+  };
+</script>
+
+<script lang="ts">
+  const FORCE = 0.5; // 0-1 roughly the vertical force at which particles initially explode
+  const SIZE = 12; // max height for particle rectangles, diameter for particle circles
+  const FLOOR_HEIGHT = 800; // pixels the particles will fall from initial explosion point
+  const FLOOR_WIDTH = 1600; // horizontal spread of particles in pixels
+  const PARTICLE_COUNT = 150;
+  const DURATION = 3500;
+  const COLORS = ['#FFC700', '#FF0000', '#2E3191', '#41BBC7'];
+
+  export let particleCount = PARTICLE_COUNT;
+  export let particleSize = SIZE;
+  export let duration = DURATION;
+  export let particlesShape: ParticleShape = 'mix';
+  export let colors = COLORS;
+  export let force = FORCE;
+  export let stageHeight = FLOOR_HEIGHT;
+  export let stageWidth = FLOOR_WIDTH;
+  export let shouldDestroyAfterDone = true;
+
+  $: particles = createParticles(particleCount, colors);
+</script>
+```
+
+<v-click>
+  <span class="text-8xl fixed top-4 right-8">😅</span>
+</v-click>
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 0.6;
+}
+
+.slidev-code {
+  /* border-radius: 0 !important; */
+}
+
+pre code {
+  font-size: 0.35rem;
+}
+</style>
+
+<!--
+
+So here's our component with the new utils added in. You can see, I put all that code in the `<script context="module"`. Why? Simple, I like to keep my svelte specific code in regular script, and the other stuff, like constant variables, pure functions etc in script context module for better organisation. Think of it as this: Reactive code in regular old script, non reactive in context module script. Not necessary reactive vs non reactive, but you get the idea.
+
+[CLICK]
+
+I also moved createParticles up in the module context. As it's just a pure function, it is better suited to the context module according to the mental model.
+
+I know you really can't read this code properly, its too small.
+
+[CLICK]
+
+This slide doesn't really require reading the code in its entirety, its there more to get a feel of it. In some of the future slides, the font will be bigger while I explain some of the code.
+
+-->
+
+---
+layout: fact
+---
+
+# style.ts
+
+<!--
+
+Now should we move on to the `style.ts` file? 
+
+-->
+
+---
+layout: fact
+---
+
+# ~~style.ts~~
+
+<!--
+
+Not yet. We still have some more stuff to analyse, which is the HTML elements. So lets analyse it first.
+
+-->
+
+---
+
+```tsx {9-16|9}
+import * as React from 'react';
+
+import useStyles, { IParticle, IStyleClasses } from './styles';
+
+// Inside the component
+const classes: IStyleClasses = useStyles({ particles, duration, particleSize, force, floorWidth, floorHeight })();
+
+return (
+  <div className={classes.container}>
+    {particles.map((particle, i) => (
+      <div id={`confetti-particle-${i}`} className={classes.particle} key={particle.degree}>
+        <div></div>
+      </div>
+    ))}
+  </div>
+);
+```
+
+<!--
+So, this is the markup. Let's analyze it. [CLICK] First, we have an opening div, with a dynamic class. My experience with this is that `classes.container` gives you a string, a hashed string. And with that string, are styles attached as CSS. Basically, standard JSX.
+
+Something like this: [click]
+-->
+
+---
+layout: center
+---
+
+```css
+._gh7g7_container_7hgv7 {
+  position: absolute;
+  top:0;
+  bottom:0;
+
+  /* Insert styles */
+}
+```
+
+
+<!--
+
+So coming back, let's analyse the 1st line. Because this is svelte, we can just use its built-in scoped styling. So, this would just become a regular old class="container".
+
+-->
+
+---
+layout: two-cols
+---
+
+## React
+
+```tsx {1}
+<div className={classes.container}>
+  {particles.map((particle, i) => (
+    <div id={`confetti-particle-${i}`} className={classes.particle} key={particle.degree}>
+      <div></div>
+    </div>
+  ))}
+</div>
+```
+
+::right::
+
+## Svelte
+
+```svelte
+<div class="container">
+
+</div>
+
+<style>
+  .container {}
+</style>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.4;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+Next up, on the left I see an array map.
+
+-->
+
+---
+layout: two-cols
+---
+
+## React
+
+```tsx {2}
+<div className={classes.container}>
+  {particles.map((particle, i) => (
+    <div id={`confetti-particle-${i}`} className={classes.particle} key={particle.degree}>
+      <div></div>
+    </div>
+  ))}
+</div>
+```
+
+::right::
+
+## Svelte
+
+```svelte
+<div class="container">
+  {#each particles as particle}
+
+  {/each}
+</div>
+
+<style>
+  .container {}
+</style>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.4;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+So I can directly convert it to an each block.
+
+-->
+
+---
+layout: two-cols
+---
+
+## React
+
+```tsx {3-5}
+<div className={classes.container}>
+  {particles.map((particle, i) => (
+    <div id={`confetti-particle-${i}`} className={classes.particle} key={particle.degree}>
+      <div></div>
+    </div>
+  ))}
+</div>
+```
+
+::right::
+
+## Svelte
+
+```svelte
+<div class="container">
+  {#each particles as particle}
+
+  {/each}
+</div>
+
+<style>
+  .container {}
+</style>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.4;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+Now I see a div, with a dynamic id, a class named particle, and a key. And it has a div as a child. So turning it into svelte is just this.
+
+-->
+
+---
+layout: two-cols
+---
+
+## React
+
+```tsx {3-5}
+<div className={classes.container}>
+  {particles.map((particle, i) => (
+    <div id={`confetti-particle-${i}`} className={classes.particle} key={particle.degree}>
+      <div></div>
+    </div>
+  ))}
+</div>
+```
+
+::right::
+
+## Svelte
+
+```svelte
+<div class="container">
+  {#each particles as particle, i}
+    <div id="confetti-particle-{i}" class="particle">
+      <div></div>
+    </div>
+  {/each}
+</div>
+
+<style>
+  .container {}
+
+  .particle {}
+</style>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.4;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+So now, it's just this. Notice I didn't put a key on that each block. Simple reason: In React, because of the virtual DOM, you need keys for React to be able to make sense of the different elements. In svelte, that problem just isn't there. If I was running svelte transitions here, I would definitely use keys though.
+
+Have to say, I am really liking the svelte version right now.
+
+-->
+
+---
+
+# `styles.ts`
+
+```ts {all|6-10|12-29|31-40} {maxHeight:'55vh'}
+import makeStyles from '@material-ui/styles/makeStyles';
+import round from 'lodash/round';
+
+import { coinFlip, mapRange, rotate, rotationTransforms, shouldBeCircle } from './utils';
+
+const ROTATION_SPEED_MIN = 200; // minimum possible duration of single particle full rotation
+const ROTATION_SPEED_MAX = 800; // maximum possible duration of single particle full rotation
+const CRAZY_PARTICLES_FREQUENCY = 0.1; // 0-1 frequency of crazy curvy unpredictable particles
+const CRAZY_PARTICLE_CRAZINESS = 0.3; // 0-1 how crazy these crazy particles are
+const BEZIER_MEDIAN = 0.5; // utility for mid-point bezier curves, to ensure smooth motion paths
+
+export interface IStyleClasses {
+  container: string;
+  particle: string;
+}
+
+export interface IParticle {
+  color: string; // color of particle
+  degree: number; // vector direction, between 0-360 (0 being straight up ↑)
+}
+
+interface IParticlesProps {
+  particles: IParticle[];
+  duration: number;
+  particleSize: number;
+  force: number;
+  floorHeight: number;
+  floorWidth: number;
+}
+
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+
+export default useStyles;
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+Ok, that... is a lot of code there. Let's try to understand. [CLICK]
+
+We got some constants here. We'll copy-paste these as is in our svelte file. [CLICK]
+
+A bunch of Typescript interfaces. We actually don't need these, as first interface is the classes that `useStyles` exports. We're not bothering with that in svelte. 2nd interface is the color and particle. We haven't really seen at the code where it is used, but I can guarantee you that we won't need it, so this is gone too. And 3rd interface is to be passed to the `useStyles`, which is not gonna be there in our codebase.
+
+[CLICK]
+
+Now this is a little rough. It's taking the array of rotations that we copied from utils file, and applying reduce on it. 
+
+And this is how it is gonna look.
+
+-->
+
+---
+layout: center
+---
+
+```js
+{
+  "@keyframes rotation-0": {
+    to: { transform: "rotate3d(1,1,0, 360deg)" },
+  },
+  "@keyframes rotation-1": {
+    to: { transform: "rotate3d(1,0,1, 360deg)" },
+  },
+  "@keyframes rotation-2": {
+    to: { transform: "rotate3d(0,1,1, 360deg)" },
+  },
+  "@keyframes rotation-3": {
+    to: { transform: "rotate3d(1,0,0, 360deg)" },
+  },
+  "@keyframes rotation-4": {
+    to: { transform: "rotate3d(0,1,0, 360deg)" },
+  },
+  "@keyframes rotation-5": {
+    to: { transform: "rotate3d(0,0,1, 360deg)" },
+  },
+};
+```
+
+<v-click>
+
+```ts
+const zAxisRotation = [0, 0, 1];
+
+const rotationTransforms = [
+  // dual axis rotations (a bit more realistic)
+  [1, 1, 0],
+  [1, 0, 1],
+  [0, 1, 1],
+  // single axis rotations (a bit dumber)
+  [1, 0, 0],
+  [0, 1, 0],
+  zAxisRotation,
+];
+```
+
+</v-click>
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.2;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+How did I get this? Because I already know the array being used, we had that predefined. [CLICK]
+
+So, mentally I can make sense of how this is gonna look. But that's not always the case, as you'll see in a second.
+
+-->
+
+---
+
+# `styles.ts`
+
+```ts {31-40|42-64} {maxHeight:'55vh'}
+import makeStyles from '@material-ui/styles/makeStyles';
+import round from 'lodash/round';
+
+import { coinFlip, mapRange, rotate, rotationTransforms, shouldBeCircle } from './utils';
+
+const ROTATION_SPEED_MIN = 200; // minimum possible duration of single particle full rotation
+const ROTATION_SPEED_MAX = 800; // maximum possible duration of single particle full rotation
+const CRAZY_PARTICLES_FREQUENCY = 0.1; // 0-1 frequency of crazy curvy unpredictable particles
+const CRAZY_PARTICLE_CRAZINESS = 0.3; // 0-1 how crazy these crazy particles are
+const BEZIER_MEDIAN = 0.5; // utility for mid-point bezier curves, to ensure smooth motion paths
+
+export interface IStyleClasses {
+  container: string;
+  particle: string;
+}
+
+export interface IParticle {
+  color: string; // color of particle
+  degree: number; // vector direction, between 0-360 (0 being straight up ↑)
+}
+
+interface IParticlesProps {
+  particles: IParticle[];
+  duration: number;
+  particleSize: number;
+  force: number;
+  floorHeight: number;
+  floorWidth: number;
+}
+
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+
+export default useStyles;
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+Let's come back to styles.ts. So, we made some sense of rotationKeyFrames. We don't know where it's being used yet, but it looks like styles in a JS object, it must definitely be for JSS styles. Then [CLICK]
+
+And here, we are doing something similar. But this time we have a reduce inside a reduce. Man, I hate reduce! Anyways, this will give us a JS object of different x and y transform keyframes.
+
+-->
+
+---
+
+```js
+{
+  "@keyframes x-axis-0": {
+    to: {
+      transform: `translateX(9px)`
+    }
+  },
+  "@keyframes x-axis-1": {
+    to: {
+      transform: `translateX(20px)`
+    }
+  },
+  "@keyframes x-axis-2": {
+    to: {
+      transform: `translateX(9px)`
+    }
+  },
+  "@keyframes x-axis-3": {
+    to: {
+      transform: `translateX(9px)`
+    }
+  },
+  .
+  .
+  .
+  "@keyframes y-axis": {
+    to: {
+      transform: `translateY(900px)`
+    }
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.4;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+Like this. the x-axis keyframes go on for who knows how long. And then we have an individual y keyframe that is just translating to the floor height, aka to the bottom of the stage.
+
+However, this is where realities of refactoring someone else's code comes in. I didn't come to this conclusion that this is how this object would look initially. I was much closer to panicking.
+
+-->
+
+---
+layout: center
+---
+
+<img src="/ptsd-doggo.jpeg" class="h-70" />
+
+<!--
+
+Yeah, I sort of looked like this poor traumatised doggo here. 
+
+-->
+
+---
+
+```ts {42-64|65-103} {maxHeight:'59vh'}
+import makeStyles from '@material-ui/styles/makeStyles';
+import round from 'lodash/round';
+
+import { coinFlip, mapRange, rotate, rotationTransforms, shouldBeCircle } from './utils';
+
+const ROTATION_SPEED_MIN = 200; // minimum possible duration of single particle full rotation
+const ROTATION_SPEED_MAX = 800; // maximum possible duration of single particle full rotation
+const CRAZY_PARTICLES_FREQUENCY = 0.1; // 0-1 frequency of crazy curvy unpredictable particles
+const CRAZY_PARTICLE_CRAZINESS = 0.3; // 0-1 how crazy these crazy particles are
+const BEZIER_MEDIAN = 0.5; // utility for mid-point bezier curves, to ensure smooth motion paths
+
+export interface IStyleClasses {
+  container: string;
+  particle: string;
+}
+
+export interface IParticle {
+  color: string; // color of particle
+  degree: number; // vector direction, between 0-360 (0 being straight up ↑)
+}
+
+interface IParticlesProps {
+  particles: IParticle[];
+  duration: number;
+  particleSize: number;
+  force: number;
+  floorHeight: number;
+  floorWidth: number;
+}
+
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+
+export default useStyles;
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+So, I don't really understand what this is doing. No worries, I move on to other code because that might help me understand it later, you know. Give me some context.
+
+So I move on the next piece of code. [CLICK] And....
+
+
+Yeah, now I am more traumatised.
+
+-->
+
+---
+layout: center
+---
+
+<img src="/ptsd-doggo.jpeg" class="h-90" />
+
+---
+
+
+```ts {65-103|66-87|89-101|105-144|120-140} {maxHeight:'59vh'}
+import makeStyles from '@material-ui/styles/makeStyles';
+import round from 'lodash/round';
+
+import { coinFlip, mapRange, rotate, rotationTransforms, shouldBeCircle } from './utils';
+
+const ROTATION_SPEED_MIN = 200; // minimum possible duration of single particle full rotation
+const ROTATION_SPEED_MAX = 800; // maximum possible duration of single particle full rotation
+const CRAZY_PARTICLES_FREQUENCY = 0.1; // 0-1 frequency of crazy curvy unpredictable particles
+const CRAZY_PARTICLE_CRAZINESS = 0.3; // 0-1 how crazy these crazy particles are
+const BEZIER_MEDIAN = 0.5; // utility for mid-point bezier curves, to ensure smooth motion paths
+
+export interface IStyleClasses {
+  container: string;
+  particle: string;
+}
+
+export interface IParticle {
+  color: string; // color of particle
+  degree: number; // vector direction, between 0-360 (0 being straight up ↑)
+}
+
+interface IParticlesProps {
+  particles: IParticle[];
+  duration: number;
+  particleSize: number;
+  force: number;
+  floorHeight: number;
+  floorWidth: number;
+}
+
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+
+export default useStyles;
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+So yeah, I try to make some sense of it. We got a lot of math up here [CLICK]. Now, I don't really understand this part. And that's fine. It's just some math. I'm not trying to change the logic of this library, Im just trying to replicate the code part of it. Hence, I will successfully ignore this part and focus on the styles being returned under it.
+
+[CLICK]
+
+Now this is some CSS in JS code. Now, we're referencing some keyframes, setting some bezier curves, setting width and height etc. Still, this is...very confusing for a developer who's been looking at this code for only like half an hour or something. At this point I'm very close to taking a break. Which, in developer speak, means putting this project in the unfinished projects graveyard.
+
+Anyways, I still don't understand it. So I move on, yet again. [CLICK]
+
+This part, as I start scanning makes no sense to me, again. However, as I go down to this section right here: [CLICk]
+
+This starts making sense. A lot of sense. it's just plain old CSS! I can directly copy it as is!
+
+-->
+
+---
+layout: two-cols
+---
+
+## React
+
+```ts {120-140} {maxHeight:'59vh'}
+import makeStyles from '@material-ui/styles/makeStyles';
+import round from 'lodash/round';
+
+import { coinFlip, mapRange, rotate, rotationTransforms, shouldBeCircle } from './utils';
+
+const ROTATION_SPEED_MIN = 200; // minimum possible duration of single particle full rotation
+const ROTATION_SPEED_MAX = 800; // maximum possible duration of single particle full rotation
+const CRAZY_PARTICLES_FREQUENCY = 0.1; // 0-1 frequency of crazy curvy unpredictable particles
+const CRAZY_PARTICLE_CRAZINESS = 0.3; // 0-1 how crazy these crazy particles are
+const BEZIER_MEDIAN = 0.5; // utility for mid-point bezier curves, to ensure smooth motion paths
+
+export interface IStyleClasses {
+  container: string;
+  particle: string;
+}
+
+export interface IParticle {
+  color: string; // color of particle
+  degree: number; // vector direction, between 0-360 (0 being straight up ↑)
+}
+
+interface IParticlesProps {
+  particles: IParticle[];
+  duration: number;
+  particleSize: number;
+  force: number;
+  floorHeight: number;
+  floorWidth: number;
+}
+
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+
+export default useStyles;
+```
+
+::right::
+
+## Svelte
+
+```svelte {10-32} {maxHeight:'59vh'}
+<div class="container">
+  {#each particles as particle, i}
+    <div id="confetti-particle-{i}" class="particle">
+      <div></div>
+    </div>
+  {/each}
+</div>
+
+<style lang="scss">
+  .container {
+    width: 0;
+    height: 0;
+    overflow: visible;
+    position: relative;
+    z-index: 1200;
+  }
+
+  .particle {
+    & > div {
+      position: absolute;
+      top: 0;
+      left: 0;
+
+      &:before {
+        display: block;
+        height: 100%;
+        width: 100%;
+        content: '';
+      }
+    }
+  }
+</style>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+So, I take these styles, and copy them as CSS to the svelte version. I also use SCSS just for the indentation niceties.
+
+OFC, this isn't enough. It doesn't really show anything on the screen. We need to go back to the useStyles function to understand that and implement it here. So let's go back to it.
+
+-->
+
+---
+
+```ts {all} {maxHeight:'59vh'}
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+
+const useStyles = ({ particles, duration, floorHeight, floorWidth, force, particleSize }: IParticlesProps) =>
+  makeStyles(
+    () => {
+      const confettiStyles = particles.reduce(
+        (acc, particle, i) => ({ ...acc, ...confettoStyle(particle, duration, force, particleSize, i) }),
+        {}
+      );
+
+      return {
+        ...rotationKeyframes,
+        ...confettiKeyframes(
+          particles.map(particle => particle.degree),
+          floorHeight,
+          floorWidth
+        ),
+        container: {
+          width: 0,
+          height: 0,
+          position: 'relative',
+          overflow: 'visible',
+          zIndex: 1200
+        },
+        particle: {
+          ...confettiStyles,
+          '& > div': {
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            '&:after': {
+              content: `''`,
+              display: 'block',
+              width: '100%',
+              height: '100%'
+            }
+          }
+        }
+      };
+    },
+    { name: 'ConfettiExplosion' }
+  );
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+So, anyways, I come back to it, and I stare at this for 10 minutes. And I still can't understand what is going on. I know there are keyframes being generated, dynamic properties being applied, but... how? In what manner, and how do I emulate that in svelte. So, tired from all this, I go to a codesandbox demo, and watch confetti just go, and analyze the DOM elements. And guess what I find there.
+
+-->
+
+---
+
+```css {all} {maxHeight:'59vh'}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-0-1 {
+  to {
+    transform: rotate3d(1,1,0, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-1-2 {
+  to {
+    transform: rotate3d(1,0,1, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-2-3 {
+  to {
+    transform: rotate3d(0,1,1, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-3-4 {
+  to {
+    transform: rotate3d(1,0,0, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-4-5 {
+  to {
+    transform: rotate3d(0,1,0, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-rotation-5-6 {
+  to {
+    transform: rotate3d(0,0,1, 360deg);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-y-axis-7 {
+  to {
+    transform: translateY(500px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-0-8 {
+  to {
+    transform: translateX(0px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-1-9 {
+  to {
+    transform: translateX(-20px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-2-10 {
+  to {
+    transform: translateX(-40px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-3-11 {
+  to {
+    transform: translateX(-60px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-4-12 {
+  to {
+    transform: translateX(-80px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-5-13 {
+  to {
+    transform: translateX(-100px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-6-14 {
+  to {
+    transform: translateX(-120px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-7-15 {
+  to {
+    transform: translateX(-140px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-8-16 {
+  to {
+    transform: translateX(-140px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-9-17 {
+  to {
+    transform: translateX(-120px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-10-18 {
+  to {
+    transform: translateX(-100px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-11-19 {
+  to {
+    transform: translateX(-80px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-12-20 {
+  to {
+    transform: translateX(-60px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-13-21 {
+  to {
+    transform: translateX(-40px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-14-22 {
+  to {
+    transform: translateX(-20px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-15-23 {
+  to {
+    transform: translateX(0px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-16-24 {
+  to {
+    transform: translateX(20px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-17-25 {
+  to {
+    transform: translateX(40px);
+  }
+}
+@-webkit-keyframes ConfettiExplosion-keyframes-x-axis-18-26 {
+  to {
+    transform: translateX(60px);
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.5rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>

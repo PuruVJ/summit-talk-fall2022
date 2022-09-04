@@ -1,6 +1,7 @@
 {
   "name": "summit-talk2022",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "slidev build",
     "dev": "slidev --open",
