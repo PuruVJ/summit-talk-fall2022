@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@iconify-json/fa': ^1.1.2
+  '@iconify-json/fxemoji': ^1.1.2
   '@iconify-json/logos': ^1.1.14
   '@iconify-json/material-symbols': ^1.1.14
   '@neodrag/vue': ^0.1.0
@@ -18,6 +19,7 @@ dependencies:
 
 devDependencies:
   '@iconify-json/fa': 1.1.2
+  '@iconify-json/fxemoji': 1.1.2
   '@iconify-json/logos': 1.1.14
   '@iconify-json/material-symbols': 1.1.14
   '@slidev/cli': 0.35.5_postcss@8.4.16
@@ -103,6 +105,12 @@ packages:
 
   /@iconify-json/fa/1.1.2:
     resolution: {integrity: sha512-+hqbFjYVfC5BenzET5iKilIGLnL0XtNdPDqXwu1CvyxX84R4DVPBveB+dvvurzUZpxS0nCgSGua8iYhCc+/Dag==}
+    dependencies:
+      '@iconify/types': 1.1.0
+    dev: true
+
+  /@iconify-json/fxemoji/1.1.2:
+    resolution: {integrity: sha512-p9ycXnmmRu41hkolKrjG0vehs3uxmugjhl0ze+squ2msiMTNFggCoB07f6ZqSfto5IZXtYtOTAgSVbPu9mWZiQ==}
     dependencies:
       '@iconify/types': 1.1.0
     dev: true

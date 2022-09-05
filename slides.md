@@ -1,6 +1,6 @@
 ---
 theme: default
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: /thumbnail-new.png
 class: text-center
 highlighter: shiki
 lineNumbers: false
@@ -11,7 +11,7 @@ title: How to migrate react libraries to svelte
 
 <!--prettier-disable-->
 
-# How to migrate react libraries to svelte
+# How to migrate <br/> React libraries to Svelte
 
 <div class="abs-br m-6 flex gap-2">
   <a href="https://github.com/puruvj" target="_blank" alt="GitHub"
@@ -21,18 +21,20 @@ title: How to migrate react libraries to svelte
 </div>
 
 <!--
-Hi! Hope ur all enjoying Svelte Summit! So, my talk is about migrating react libraries to Svelte. What this means: I will show you step by step how I converted an existing React library to Svelte. And made it smaller and faster.
+
+Hi! Hope ur all enjoying Svelte Summit! So, my talk is about migrating react libraries to Svelte. I will show you step by step how I converted an existing React library to Svelte. And made it smaller and faster.
 
 So, first question: All the svelte devs?
 2nd question: All who have been react developers in the past, and don't do react anymore
 3rd question: Still do React?
+
 -->
 
 ---
 layout: fact
 ---
 
-# What is the problem
+# What is the problem?
 
 <!--
 
@@ -50,12 +52,10 @@ layout: quote
 layout: quote
 ---
 
-# React's ecosystem is big. Svelte's is not.
+# React's ecosystem is big. Svelte is not.
 
 <!--
-
-Now, I know what many of you are gonna disagree with that. And I don't wanna get eggs thrown at me, so I will explain this point, and try to convince you well. But before that, lemme introduce myself.
-
+Now, I know that many of you are gonna disagree with that. And I don't wanna get eggs thrown at me, so I will explain this point, and try to convince you well. But before that, lemme introduce myself.
 -->
 
 ---
@@ -118,24 +118,26 @@ A counterargument to this is that React's ecosystem exists to fill in the flaws 
 
 - **Styling**: CSS Modules, styled-components, jss, emotion, vanilla-extract, goober
 - **Animation**: Framer Motion, React Spring, Remotion
-- **State Management**: Redux(Toolkit), Jotai, Zustand
+- **State Management**: Redux (Toolkit), Jotai, Zustand
 - **Dynamic Class**: clsx, classnames
 - **Form**: react-hook-form
 
 </v-clicks>
 
 <!--
-
-For styling, you got to pick between CSS Modules, or one of the CSS in JS alternatives, like styled-components, jss, emotion, vanilla extract, goober, etc.
+[CLICK] For styling, you got to pick between CSS Modules, or one of the CSS in JS alternatives, like styled-components, jss, emotion, vanilla extract, goober, etc.
+[CLICK]
 
 For animation, you got framer motion, react spring, remotion.
+[CLICK]
 
 And, for state management, you got Redux, or redux toolkit effectively, cuz lets face it, anyone starting a new redux project won't really go for plain redux. You got Jotai(Which is my absolute favorite choice out of any state management library in React ecosystem) and finally zustand, and some more.
+[CLICK]
 
 And, ofc, you ultimately end up dynamically adding and removing classes for styles, and for that you use `clsx`, made by our very own Luke Edwards.
+[CLICk]
 
 And finally, forms in React are an absolute pain! Regular old forms which require clicking on submit button are fine, but when you venture into real time territory in React, it is pain squared! And for that, you use react-hook-form.
-
 -->
 
 ---
@@ -212,13 +214,11 @@ code {
 </style>
 
 <!--
-
 So, you write a little svelte action.
 
-<click>
+[CLICK]
 
 And apply it to the target element.
-
 -->
 
 ---
@@ -744,9 +744,7 @@ code {
 </style>
 
 <!--
-
-This, is too big at this point. This could be a library at this point. And it makes the situation nicer to actually have a library that just works. This is a shameless plug of my library neodrag, a tiny 2kb library to make your elements draggable.
-
+This, is too big. This could be a library at this point. And it makes the situation nicer to actually have a library that just works.
 -->
 
 ---
@@ -772,9 +770,9 @@ import { draggable } from '@neodrag/svelte';
 ```
 
 <!--
+This is a shameless plug of my library neodrag, a tiny 2kb library to make your elements draggable.
 
 How is this relevant to the talk? This library is hand written port of the amazing react-draggable library. And the talk is about converting react libraries to svelte. So, it fits, and I get to shamelessly plug my own stuff.
-
 -->
 
 ---
@@ -818,11 +816,9 @@ layout: center
 ![](/this-is-sveltia.jpeg)
 
 <!--
-
 We don't like boring stuff. We like having some fun!
 
-So, instead of some boring draggable, we are gonna throw around confetti!
-
+So, instead of some boring draggable, we are gonna throw a party!
 -->
 
 ---
@@ -881,11 +877,9 @@ By [Ethan Herr](https://github.com/herrethan)
 ```
 
 <!--
-
-Some info about this library. It's created by Ethan Herr. 
+Props to Ethan Herr for creating this amazing library. Ethan Herr,  If you are watching this, stop.
 
 Here, we have all these props you can pass to ConfettiExplosion. We are gonna make sure to get all the props working in our version too!
-
 -->
 
 ---
@@ -895,17 +889,14 @@ Here, we have all these props you can pass to ConfettiExplosion. We are gonna ma
   - lodash (range, round, isEqual)
   - @material-ui/styles
 
-
 <!--
-
-And it is slightly on the heavier side with 17KB in brotli. Not really heavy, but I wanna see how small we can go with it.
+And some more info about it it. It is slightly on the heavier side with 17KB in brotli. Not really heavy, but I wanna see how small we can go with it.
 
 This package relies on 2 packages, lodash, specifically for range, round and isEqual functions. I'll try to get rid of these if possible.
 
 And it relies on @material-ui/styles. This we can definitely get rid of, as we'll be using svelte's built in scoped styles.
 
 Now that we have got an overview of the weight of the package, let's actually look at the code. And before we check the code, we check the files first
-
 -->
 
 ---
@@ -1002,18 +993,20 @@ code {
 </style>
 
 <!--
-
 This is index.tsx. 
 
-As you can notice we have a bunch of constants here.
-[Click]
-Then if you go down you have an interface. 
-[CLick]
-This is for the props you pass to the component.
-[CLICK]
-Now we got a function createParticles. Right now, I don't really know what it does. I'll have to look at where its used to know. So, moving on, we have the component, and its props.
+[Click] As you can notice we have a bunch of constants here.
 
-Now, before we move on, let's convert some of what we saw into a svelte component. This helps keep the cognitive load down.
+[CLICK]
+Then if you go down you have an interface. 
+This is for the props you pass to the component.
+
+[CLICK]
+Now we got a function createParticles. Right now, I don't really know what it does. I'll have to look at where its used to understand. 
+
+[CLICK]So, moving on, we have the component, and its props.
+
+Now, before we go ahead, let's convert some of what we saw until now into a svelte component. This helps keep the cognitive load down.
 -->
 
 ---
@@ -1210,13 +1203,10 @@ code {
 </style>
 
 <!--
-
 And now we have a little less stuff to work with. Let's see if there's something else we can move to svelte directly right now.
 
 But before that, how do you determine what you move first? Where exactly do you start?
-
 -->
-
 
 ---
 layout: fact
@@ -1320,7 +1310,6 @@ Following that rule, I see `createParticles` [CLICK] is just a pure function tha
 layout: two-cols
 ---
 
-
 ### React
 
 ```tsx {maxHeight:'60vh'}
@@ -1399,17 +1388,15 @@ code {
 </style>
 
 <!--
-
 As you can see, I moved createParticles to svelte side [CLICK]
 
 And particles computed with props is now a reactive variable [CLICK]
 
-Now, we have very little code on the left side. But here's where our hurdles begin. You can see the `useStyles`. We don't need to check its codebase to check if it uses React specific features or not. It starts with a `use`, so ofc it does.
+Now, we have very little code on the left side. But here's where our hurdles begin. You can see the `useStyles`. We don't need to check its codebase to see if it uses React specific features or not. It starts with a `use`, so ofc it does.
 
 So, should we go deeper into the rabbit hole of react specific parts? Into the useStyles function? Not yet!
 
 We still should check around for some constants and helpers
-
 -->
 
 ---
@@ -1489,9 +1476,7 @@ pre code {
 </style>
 
 <!--
-
-Scanning this file, we can see there's no JSX or any other react specific code. So, we can safely copy paste it. The whole thing. For simplicity, we'll put it in our one single .svelte file.
-
+Scanning this file, we can see there is no JSX code or any other react specific code. So, we can safely copy paste it. The whole thing. For simplicity, we'll put it in our one single .svelte file.
 -->
 
 ---
@@ -1586,8 +1571,7 @@ pre code {
 </style>
 
 <!--
-
-So here's our component with the new utils added in. You can see, I put all that code in the `<script context="module"`. Why? Simple, I like to keep my svelte specific code in regular script, and the other stuff, like constant variables, pure functions etc in script context module for better organisation. Think of it as this: Reactive code in regular old script, non reactive in context module script. Not necessary reactive vs non reactive, but you get the idea.
+So here is our component with the new utils added in. You can see, I put all that code in the `<script context="module"`. Why? Simple, I like to keep my svelte specific code in regular script, and the other stuff, like constant variables, pure functions etc in script context module for better organisation. Think of it as this: Reactive code in regular old script, non reactive in context module script. Not necessary reactive vs non reactive, but you get the idea.
 
 [CLICK]
 
@@ -1597,8 +1581,7 @@ I know you really can't read this code properly, its too small.
 
 [CLICK]
 
-This slide doesn't really require reading the code in its entirety, its there more to get a feel of it. In some of the future slides, the font will be bigger while I explain some of the code.
-
+This slide doesn't really require reading the code in its entirety, it iss there more to get a feel of it. In some of the future slides, the font will be bigger while I explain some of the code.
 -->
 
 ---
@@ -1647,7 +1630,8 @@ return (
 ```
 
 <!--
-So, this is the markup. Let's analyze it. [CLICK] First, we have an opening div, with a dynamic class. My experience with this is that `classes.container` gives you a string, a hashed string. And with that string, are styles attached as CSS. Basically, standard JSX.
+So, this is the markup. 
+[CLICK] First, we have an opening div, with a dynamic class. My experience with this is that `classes.container` gives you a string, a hashed string. And with that string, are styles attached as CSS. Basically, standard JSX.
 
 Something like this: [click]
 -->
@@ -1666,12 +1650,6 @@ layout: center
 }
 ```
 
-
-<!--
-
-So coming back, let's analyse the 1st line. Because this is svelte, we can just use its built-in scoped styling. So, this would just become a regular old class="container".
-
--->
 
 ---
 layout: two-cols
@@ -1719,9 +1697,9 @@ pre code {
 </style>
 
 <!--
+So coming back, let's analyse the 1st line. Because this is svelte, we can just use its built-in scoped styling. So, this would just become a regular old class="container".
 
 Next up, on the left I see an array map.
-
 -->
 
 ---
@@ -1882,11 +1860,9 @@ pre code {
 </style>
 
 <!--
-
-So now, it's just this. Notice I didn't put a key on that each block. Simple reason: In React, because of the virtual DOM, you need keys for React to be able to make sense of the different elements. In svelte, that problem just isn't there. If I was running svelte transitions here, I would definitely use keys though.
+Notice I didn't put a key on that each block. Simple reason: In React, because of the virtual DOM, you need keys for React to be able to make sense of the different elements. In svelte, that problem just isn't there. If I was running svelte transitions here, I would definitely use keys though.
 
 Have to say, I am really liking the svelte version right now.
-
 -->
 
 ---
@@ -2058,7 +2034,6 @@ pre code {
 </style>
 
 <!--
-
 Ok, that... is a lot of code there. Let's try to understand. [CLICK]
 
 We got some constants here. We'll copy-paste these as is in our svelte file. [CLICK]
@@ -2067,10 +2042,9 @@ A bunch of Typescript interfaces. We actually don't need these, as first interfa
 
 [CLICK]
 
-Now this is a little rough. It's taking the array of rotations that we copied from utils file, and applying reduce on it. 
+Now this is a little rough. It is taking the array of rotations that we copied from utils file, and applying reduce on it. 
 
 And this is how it is gonna look.
-
 -->
 
 ---
@@ -2380,12 +2354,10 @@ However, this is where realities of refactoring someone else's code comes in. I 
 layout: center
 ---
 
-<img src="/ptsd-doggo.jpeg" class="h-70" />
+<img src="/ptsd-doggo.jpg" class="h-70" />
 
 <!--
-
-Yeah, I sort of looked like this poor traumatised doggo here. 
-
+Yeah, I sort of looked like Private from Madagascar this point, really traumatised
 -->
 
 ---
@@ -2569,7 +2541,7 @@ Yeah, now I am more traumatised.
 layout: center
 ---
 
-<img src="/ptsd-doggo.jpeg" class="h-90" />
+<img src="/ptsd-doggo.jpg" class="h-140" />
 
 ---
 
@@ -3095,14 +3067,12 @@ pre code {
 </style>
 
 <!--
-
-So, anyways, I come back to it, and I stare at this for 10 minutes. And I still can't understand what is going on. I know there are keyframes being generated, dynamic properties being applied, but... how? In what manner, and how do I emulate that in svelte. So, tired from all this, I go to a codesandbox demo, and watch confetti just go, and analyze the DOM elements. And guess what I find there.
-
+Now I am staring at this for 10 minutes and I still can't make sense of what is going on. I know there are keyframes being generated, dynamic properties being applied, but... how? In what manner, and how do I emulate that in svelte. So, tired from all this, I go to a pre-built codesandbox demo, and watch confetti explode, and analyze the DOM elements. And guess what I find there.
 -->
 
 ---
 
-```css {all} {maxHeight:'59vh'}
+```css {all|0} {maxHeight:'59vh'}
 @-webkit-keyframes ConfettiExplosion-keyframes-rotation-0-1 {
   to {
     transform: rotate3d(1,1,0, 360deg);
@@ -3235,6 +3205,10 @@ So, anyways, I come back to it, and I stare at this for 10 minutes. And I still 
 }
 ```
 
+<div v-if="$slidev.nav.clicks === 1">
+  <img src="/light-on.png" class="h-140 fixed top-[50%] left-[50%] transform translate-x-[-50%] translate-y-[-50%]" />
+</div>
+
 <style>
 .slidev-layout {
   gap: 0.5rem;
@@ -3249,3 +3223,774 @@ pre code {
   font-size: 0.5rem;
 }
 </style>
+
+<!--
+
+Mostly keyframes. And that's not all! This is only a fifth of what was actually there. And that's only with 30 particles. Default is 200, and the keyframes and styles for that amount to around 3000 lines of generated CSS code. 3000 folks, 3000! For a measly 200 particles.
+
+And if you closely analyze this code, they are not even different keyframes actually. They are all just one keyframe animation, only with a different value.
+
+This is when I finally understood how to bring it all together [CLICK]
+
+All that code to generate keyframes and styles, that all applies to every single particle node. And most of it is highly redundant. It is generating 2 new keyframes for every single particle. We don't need separate keyframes for every particle. We just need to generate the original keyframes once, and give them different values using CSS variables. So, first, let's just try to recreate the dynamic CSS with CSS variables.
+
+-->
+
+---
+layout: two-cols
+---
+
+```ts
+const rotationKeyframes = rotationTransforms.reduce((acc, xyz, i) => {
+  return {
+    ...acc,
+    [`@keyframes rotation-${i}`]: {
+      to: {
+        transform: `rotate3d(${xyz.join()}, 360deg)`
+      }
+    }
+  };
+}, {});
+```
+
+::right::
+
+```css
+@keyframes rotation {
+  to {
+    transform: rotate3d(var(--rotation), 360deg);
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.3;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+The simplest one, the rotation keyframes, I will copy just as is. The --rotation variable, we will pass it later.
+
+-->
+
+---
+layout: two-cols
+---
+
+```ts
+const confettiKeyframes = (degrees: number[], floorHeight: number, floorWidth: number) => {
+  const xLandingPoints = degrees.reduce((acc, degree, i) => {
+    const landingPoint = mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -floorWidth / 2, floorWidth / 2);
+    return {
+      ...acc,
+      [`@keyframes x-axis-${i}`]: {
+        to: {
+          transform: `translateX(${landingPoint}px)`
+        }
+      }
+    };
+  }, {});
+
+  return {
+    '@keyframes y-axis': {
+      to: {
+        transform: `translateY(${floorHeight}px)`
+      }
+    },
+    ...xLandingPoints
+  };
+};
+```
+
+::right::
+
+```css
+@keyframes x-axis {
+  to {
+    transform: translate3d(var(--x-landing-point), 0, 0);
+  }
+}
+
+@keyframes y-axis {
+  to {
+    transform: translate3d(0, var(--floor-height), 0);
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.3;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+
+The x and y axis keyframes, I will also copy them as is. Also, I will convert the translateX and translateY to translate3d, for some hardware acceleration. Again, variables I will pass later. Just look at how much simpler it looks.
+
+-->
+
+---
+layout: two-cols
+---
+
+```ts {25-37} {maxHeight:'59vh'}
+const confettoStyle = (particle: IParticle, duration: number, force: number, size: number, i: number) => {
+  const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+  const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+  const durationChaos = duration - Math.round(Math.random() * 1000);
+  const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+  const isCircle = shouldBeCircle(rotationIndex);
+
+  // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+  const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+  const x2 = x1 * -1;
+  const x3 = x1;
+  // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+  const x4 = round(Math.abs(mapRange(Math.abs(rotate(particle.degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+  // roughly how fast particle reaches end of its explosion curve
+  const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+  // roughly maps to the distance particle goes before reaching free-fall
+  const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+  // roughly how soon the particle transitions from explosion to free-fall
+  const y3 = BEZIER_MEDIAN;
+  // roughly the ease of free-fall
+  const y4 = round(Math.max(mapRange(Math.abs(particle.degree - 180), 0, 180, force, -force), 0), 4);
+
+  return {
+    [`&#confetti-particle-${i}`]: {
+      animation: `$x-axis-${i} ${durationChaos}ms forwards cubic-bezier(${x1}, ${x2}, ${x3}, ${x4})`,
+      '& > div': {
+        width: isCircle ? size : Math.round(Math.random() * 4) + size / 2,
+        height: isCircle ? size : Math.round(Math.random() * 2) + size,
+        animation: `$y-axis ${durationChaos}ms forwards cubic-bezier(${y1}, ${y2}, ${y3}, ${y4})`,
+        '&:after': {
+          backgroundColor: particle.color,
+          animation: `$rotation-${rotationIndex} ${rotation}ms infinite linear`,
+          ...(isCircle ? { borderRadius: '50%' } : {})
+        }
+      }
+    }
+  };
+};
+```
+
+::right::
+
+```scss {2-3,9-12,19-21}
+.particle {
+  animation: x-axis var(--duration-chaos) forwards
+    cubic-bezier(var(--x1), var(--x2), var(--x3), var(--x4));
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: y-axis var(--duration-chaos) forwards
+      cubic-bezier(var(--y1), var(--y2), var(--y3), var(--y4));
+    width: var(--width);
+    height: var(--height);
+
+    &:before {
+      display: block;
+      height: 100%;
+      width: 100%;
+      content: '';
+      background-color: var(--bgcolor);
+      animation: rotation var(--rotation-duration) infinite linear;
+      border-radius: var(--border-radius);
+    }
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.3;
+}
+
+
+pre code {
+  font-size: 0.6rem;
+}
+</style>
+
+<!--
+And the styles on the left, the dynamic ones, we copied as it is to the right, and replaced the dynamic parts with CSS variables. Look, simple!
+-->
+
+---
+layout: full
+---
+
+```scss {all} {maxHeight:'59vh'}
+@keyframes y-axis {
+  to {
+    transform: translate3d(0, var(--floor-height), 0);
+  }
+}
+
+@keyframes x-axis {
+  to {
+    transform: translate3d(var(--x-landing-point), 0, 0);
+  }
+}
+
+@keyframes rotation {
+  to {
+    transform: rotate3d(var(--rotation), 360deg);
+  }
+}
+
+.particle {
+  animation: x-axis var(--duration-chaos) forwards
+    cubic-bezier(var(--x1), var(--x2), var(--x3), var(--x4));
+
+  & > div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: y-axis var(--duration-chaos) forwards
+      cubic-bezier(var(--y1), var(--y2), var(--y3), var(--y4));
+    width: var(--width);
+    height: var(--height);
+
+    &:before {
+      display: block;
+      height: 100%;
+      width: 100%;
+      content: '';
+      background-color: var(--bgcolor);
+      animation: rotation var(--rotation-duration) infinite linear;
+      border-radius: var(--border-radius);
+    }
+  }
+}
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+This is how our complete CSS looks now. This actually looks sane and parseable now, compared to the CSS-in-JS hot mess we saw in the original codebase. This is just better. Now its time to provide all these CSS Variables to our elements so our confetti can work. Now, how do we do that?
+-->
+
+---
+layout: center
+---
+
+<img src="/use-to-rescue.webp" class="w-100" />
+
+<!--
+
+Svelte action to the rescue!
+
+-->
+
+---
+
+```svelte
+<script lang="ts">
+  function confettiStyles(node: HTMLDivElement) {
+
+  }
+</script>
+
+<div class="container">
+  {#each particles as particle}
+    <div class="particle" use:confettiStyles>
+      <div />
+    </div>
+  {/each}
+</div>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+</style>
+
+<!--
+Lets modify our code to use svelte action. Right now, this is a barebones empty action. Let's fill it up with all the CSS variables we saw. Before that, we need all the math.
+-->
+
+---
+
+```svelte
+<script lang="ts">
+  function confettiStyles(node: HTMLDivElement) {
+    // Get x landing point for it
+    const landingPoint = mapRange(
+      Math.abs(rotate(degree, 90) - 180),
+      0,
+      180,
+      -stageWidth / 2,
+      stageWidth / 2
+    );
+
+    // Crazy calculations for generating styles
+    const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+    const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+    const durationChaos = duration - Math.round(Math.random() * 1000);
+    const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+    const isCircle =
+      particlesShape !== 'rectangles' &&
+      (particlesShape === 'circles' || shouldBeCircle(rotationIndex));
+
+    // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+    const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+    const x2 = x1 * -1;
+    const x3 = x1;
+    // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+    const x4 = round(Math.abs(mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+    // roughly how fast particle reaches end of its explosion curve
+    const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+    // roughly maps to the distance particle goes before reaching free-fall
+    const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+    // roughly how soon the particle transitions from explosion to free-fall
+    const y3 = BEZIER_MEDIAN;
+    // roughly the ease of free-fall
+    const y4 = round(Math.max(mapRange(Math.abs(degree - 180), 0, 180, force, -force), 0), 4);
+  }
+</script>
+
+<div class="container">
+  {#each particles as particle}
+    <div class="particle" use:confettiStyles>
+      <div />
+    </div>
+  {/each}
+</div>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+And we have the math now. but now we are getting some red squiggles.
+-->
+
+---
+
+<img src="/degree-red-squiggle.png" />
+
+<!--
+So our math relies on the degree variable. and where do we get that from?
+
+Remember the HTML markup we wrote? The each loop in it?
+-->
+
+---
+layout: center
+---
+
+```svelte {all|2}
+<div class="container">
+  {#each particles as particle}
+    <div class="particle" use:confettiStyles>
+      <div />
+    </div>
+  {/each}
+</div>
+```
+
+<!--
+Do you see the particle? That is actually an object with the properties - colour and degree.
+-->
+
+---
+layout: center
+---
+
+```svelte {2}
+<div class="container">
+  {#each particles as { color, degree }}
+    <div class="particle" use:confettiStyles>
+      <div />
+    </div>
+  {/each}
+</div>
+```
+
+<!--
+
+Basically every single particle has its own degree. So we can pass that to the confetti styles action. So this becomes:
+
+-->
+
+---
+layout: center
+---
+
+```svelte {3}
+<div class="container">
+  {#each particles as { color, degree }}
+    <div class="particle" use:confettiStyles={degree}>
+      <div />
+    </div>
+  {/each}
+</div>
+```
+
+<!--
+
+And our action now accepts a second parameter - degree of type number. 
+
+-->
+
+---
+
+```svelte {2} {maxHeight:'59vh'}
+<script lang="ts">
+  function confettiStyles(node: HTMLDivElement, degree: number) {
+    // Get x landing point for it
+    const landingPoint = mapRange(
+      Math.abs(rotate(degree, 90) - 180),
+      0,
+      180,
+      -stageWidth / 2,
+      stageWidth / 2
+    );
+
+    // Crazy calculations for generating styles
+    const rotation = Math.random() * (ROTATION_SPEED_MAX - ROTATION_SPEED_MIN) + ROTATION_SPEED_MIN;
+    const rotationIndex = Math.round(Math.random() * (rotationTransforms.length - 1));
+    const durationChaos = duration - Math.round(Math.random() * 1000);
+    const shouldBeCrazy = Math.random() < CRAZY_PARTICLES_FREQUENCY;
+    const isCircle =
+      particlesShape !== 'rectangles' &&
+      (particlesShape === 'circles' || shouldBeCircle(rotationIndex));
+
+    // x-axis disturbance, roughly the distance the particle will initially deviate from its target
+    const x1 = shouldBeCrazy ? round(Math.random() * CRAZY_PARTICLE_CRAZINESS, 2) : 0;
+    const x2 = x1 * -1;
+    const x3 = x1;
+    // x-axis arc of explosion, so 90deg and 270deg particles have curve of 1, 0deg and 180deg have 0
+    const x4 = round(Math.abs(mapRange(Math.abs(rotate(degree, 90) - 180), 0, 180, -1, 1)), 4);
+
+    // roughly how fast particle reaches end of its explosion curve
+    const y1 = round(Math.random() * BEZIER_MEDIAN, 4);
+    // roughly maps to the distance particle goes before reaching free-fall
+    const y2 = round(Math.random() * force * (coinFlip() ? 1 : -1), 4);
+    // roughly how soon the particle transitions from explosion to free-fall
+    const y3 = BEZIER_MEDIAN;
+    // roughly the ease of free-fall
+    const y4 = round(Math.max(mapRange(Math.abs(degree - 180), 0, 180, force, -force), 0), 4);
+  }
+</script>
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+
+Now finally, all we need to do is set the CSS variables that we provided already in the CSS, that our CSS expects.
+
+-->
+
+---
+
+```ts
+const setCSSVar = (key: string, val: string | number) => node.style.setProperty(key, val + '');
+
+setCSSVar('--x-landing-point', `${landingPoint}px`);
+
+setCSSVar('--duration-chaos', `${durationChaos}ms`);
+
+setCSSVar('--x1', x1);
+setCSSVar('--x2', x2);
+setCSSVar('--x3', x3);
+setCSSVar('--x4', x4);
+
+setCSSVar('--y1', y1);
+setCSSVar('--y2', y2);
+setCSSVar('--y3', y3);
+setCSSVar('--y4', y4);
+
+// set --width and --height here
+setCSSVar(
+  '--width',
+  `${isCircle ? particleSize : Math.round(Math.random() * 4) + particleSize / 2}px`
+);
+setCSSVar(
+  '--height',
+  (isCircle ? particleSize : Math.round(Math.random() * 2) + particleSize) + 'px'
+);
+
+setCSSVar('--rotation', `${rotationTransforms[rotationIndex].join()}`);
+setCSSVar('--rotation-duration', `${rotation}ms`);
+setCSSVar('--border-radius', `${isCircle ? '50%' : '0'}`);
+```
+
+<style>
+.slidev-layout {
+  gap: 0.7rem;
+}
+
+pre  {
+  --slidev-code-line-height: 1.1;
+}
+
+
+pre code {
+  font-size: 0.5rem;
+}
+</style>
+
+<!--
+And now, all our variables are set.
+-->
+
+---
+
+```svelte {1,4}
+<div class="container" style:--floor-height="{stageHeight}px">
+  {#each particles as { color, degree }}
+    <div class="particle" use:confettiStyles={degree}>
+      <div style:--bgcolor={color} />
+    </div>
+  {/each}
+</div>
+```
+
+<!--
+and here are some final CSS variables settings that we are gonna do right in our markup. And, we're done! Our confetti now works!
+-->
+
+---
+
+<!-- This is dummy for slidev to trigger the confetti -->
+<v-click>
+  <span />
+</v-click>
+
+<div v-if="$slidev.nav.clicks === 1">
+  <ConfettiDemo2 />
+</div>
+
+---
+layout: fact
+---
+
+# Getting rid of `lodash`
+
+<style>
+
+h1 {
+  line-height: 1.6 !important;
+}
+
+</style>
+
+<!--
+
+SO, our package is now fully functional. BUt it's still not dependency free. Material UI was eliminated automatically, but we still have lodash to get rid of. And for that, it's very very easy. I'm gonna create some small functions myself for this specific package. 
+
+-->
+
+---
+layout: quote
+---
+
+# `round`, `isEqual`
+
+<!--
+
+We only have two lodash functions left now. Initially we had range too, but we got rid of it during the `createParticles` function. Now, round just rounds off a number with specific precision. I found a nice code for it on Stackoverflow.
+
+-->
+
+---
+layout: center
+---
+
+```ts
+// From here: https://stackoverflow.com/a/11832950
+function round(num: number, precision: number = 2) {
+  return Math.round((num + Number.EPSILON) * 10 ** precision) / 10 ** precision;
+}
+```
+
+<v-click>
+
+```ts
+function arraysEqual<ItemType>(a: ItemType[], b: ItemType[]) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+
+  return true;
+}
+```
+
+</v-click>
+
+<!--
+
+And for the isEqual, we're only comparing arrays of numbers, so this code was more than enough.
+
+And lodash is out! Now our package is 100% dependency free!
+
+-->
+
+---
+layout: fact
+---
+
+# <span text="green-400"> 0 Dependencies</span>
+
+<!-- This is dummy for slidev to trigger the confetti -->
+<v-click>
+  <span />
+</v-click>
+
+<div v-if="$slidev.nav.clicks === 1">
+  <ConfettiDemo />
+</div>
+
+<!--
+[CLICK] 
+
+And what about the bundle size?
+-->
+
+---
+layout: fact
+---
+
+# <span text="red-400">17.1KB</span> min+br
+
+<!--
+
+Remember the original's size? That was 17.1KB. Can I get any guesses how much the current size may be, after you compile the svelte file, and bundle it separately?
+
+-->
+
+---
+layout: fact
+---
+
+# <span text="green-400">2.46KB</span> min+br
+
+<v-click>
+
+## 7x Smaller
+
+</v-click>
+
+<!-- This is dummy for slidev to trigger the confetti -->
+<v-click>
+  <span />
+</v-click>
+
+<div v-if="$slidev.nav.clicks === 2">
+  <ConfettiDemo />
+</div>
+
+<!--
+It's less than 2.5KB now. Yepp, that is almost 7x times smaller! [CLICK] And its faster too, as there's no Virtual DOM, no CSS in JS, very little runtime, and most importantly, we are not generating thousands of lines of CSS in the browser.
+
+I would say this occassion calls for some confetti.
+-->
+
+---
+layout: fact
+---
+
+## `pnpm add svelte-confetti-explosion`
+
+<!--
+
+I published this little package on npm, you can find this as `svelte-confetti-explosion`
+
+And, that was my talk!
+
+-->
+
+
+---
+layout: center
+---
+
+<img src="/and-thats-all.png"  />
+
+<!-- This is dummy for slidev to trigger the confetti -->
+<v-click>
+  <span />
+</v-click>
+
+<div v-if="$slidev.nav.clicks === 1">
+  <ConfettiEnd />
+</div>
+
+<!--
+
+Thank you! 
+
+-->
