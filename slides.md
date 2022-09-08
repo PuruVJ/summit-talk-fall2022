@@ -879,7 +879,7 @@ By [Ethan Herr](https://github.com/herrethan)
 <!--
 Props to Ethan Herr for creating this amazing library. Ethan Herr,  If you are watching this, stop.
 
-Here, we have all these props you can pass to ConfettiExplosion. We are gonna make sure to get all the props working in our version too!
+So, Here, we have all these props you can pass to ConfettiExplosion. We are gonna make sure to get all the props working in our version too!
 -->
 
 ---
@@ -1571,7 +1571,7 @@ pre code {
 </style>
 
 <!--
-So here is our component with the new utils added in. You can see, I put all that code in the `<script context="module"`. Why? Simple, I like to keep my svelte specific code in regular script, and the other stuff, like constant variables, pure functions etc in script context module for better organisation. Think of it as this: Reactive code in regular old script, non reactive in context module script. Not necessary reactive vs non reactive, but you get the idea.
+So here is our component with the new utils added in. You can see, I put all that code in the `<script context="module"`. Why? Simple, I like to keep my svelte specific code in regular script, and the other stuff, like constant variables, pure functions etc in script context module for better organisation.
 
 [CLICK]
 
@@ -2285,11 +2285,9 @@ pre code {
 </style>
 
 <!--
-
 Let's come back to styles.ts. So, we made some sense of rotationKeyFrames. We don't know where it's being used yet, but it looks like styles in a JS object, it must definitely be for JSS styles. Then [CLICK]
 
-And here, we are doing something similar. But this time we have a reduce inside a reduce. Man, I hate reduce! Anyways, this will give us a JS object of different x and y transform keyframes.
-
+And here, we are doing something similar. But this time we have a reduce inside a function being merged with a separate object. Man, I hate reduce! Anyways, this will give us a JS object of different x and y transform keyframes.
 -->
 
 ---
@@ -3819,6 +3817,8 @@ And now, all our variables are set.
 
 <!--
 and here are some final CSS variables settings that we are gonna do right in our markup. And, we're done! Our confetti now works!
+
+Also, really love the style: syntax. Its a life saver. Thank you Svelte team a lot for this addition.
 -->
 
 ---
@@ -3831,6 +3831,12 @@ and here are some final CSS variables settings that we are gonna do right in our
 <div v-if="$slidev.nav.clicks === 1">
   <ConfettiDemo2 />
 </div>
+
+<!--
+Our confetti is done!!
+
+[CLICk]
+-->
 
 ---
 layout: fact
@@ -3892,11 +3898,9 @@ function arraysEqual<ItemType>(a: ItemType[], b: ItemType[]) {
 </v-click>
 
 <!--
-
-And for the isEqual, we're only comparing arrays of numbers, so this code was more than enough.
+And for the isEqual, [CLICK] we're only comparing arrays of numbers, so this code was more than enough.
 
 And lodash is out! Now our package is 100% dependency free!
-
 -->
 
 ---
@@ -3927,9 +3931,9 @@ layout: fact
 # <span text="red-400">17.1KB</span> min+br
 
 <!--
+Remember the original's size? That was 17.1KB. Can I get any guesses how much the current size may be, after you compile the svelte file, and bundle it separately? Any guesses?
 
-Remember the original's size? That was 17.1KB. Can I get any guesses how much the current size may be, after you compile the svelte file, and bundle it separately?
-
+[Wait 5 seconds]
 -->
 
 ---
